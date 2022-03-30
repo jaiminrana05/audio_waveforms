@@ -1,6 +1,9 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'dart:ui' as ui show Gradient;
+
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(const MyApp());
 
@@ -25,19 +28,41 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  late final WaveController waveController;
+  late final RecorderController recorderController;
+  late final PlayerController playerController;
+  String? path;
+  String? musicFile;
 
   @override
   void initState() {
     super.initState();
-    waveController = WaveController()
+    recorderController = RecorderController()
       ..encoder = Encoder.aac
       ..sampleRate = 16000;
+    playerController = PlayerController();
+    Future.delayed(const Duration(seconds: 10)).then((value) {
+      _pickFile();
+    });
+  }
+
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    ScrollController();
+    if (result != null) {
+      musicFile = result.files.single.path;
+    } else {
+      print("File not picked");
+    }
+  }
+
+  void _getDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    musicFile = "${dir.path}/music.aac";
   }
 
   @override
   void dispose() {
-    waveController.disposeFunc();
+    recorderController.disposeFunc();
     super.dispose();
   }
 
@@ -52,7 +77,7 @@ class _HomeState extends State<Home> {
           AudioWaveforms(
             enableGesture: true,
             size: Size(MediaQuery.of(context).size.width, 100.0),
-            waveController: waveController,
+            waveController: recorderController,
             margin: const EdgeInsets.all(20.0),
             waveStyle: WaveStyle(
               waveColor: Colors.white,
@@ -62,6 +87,7 @@ class _HomeState extends State<Home> {
               extendWaveform: true,
               showMiddleLine: false,
               labelSpacing: 8.0,
+              showDurationLabel: true,
               durationStyle: const TextStyle(
                 color: Colors.white,
                 fontSize: 18.0,
@@ -104,7 +130,9 @@ class _HomeState extends State<Home> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: waveController.record,
+                      onPressed: () {
+                        recorderController.record(musicFile);
+                      },
                       color: Colors.white,
                       icon: const Icon(Icons.mic),
                     ),
@@ -115,7 +143,7 @@ class _HomeState extends State<Home> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: waveController.pause,
+                      onPressed: recorderController.pause,
                       color: Colors.white,
                       icon: const Icon(Icons.pause),
                     ),
@@ -126,7 +154,10 @@ class _HomeState extends State<Home> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: waveController.stop,
+                      onPressed: () async {
+                        path = await recorderController.stop(false);
+                        setState(() {});
+                      },
                       color: Colors.white,
                       icon: const Icon(Icons.stop),
                     ),
@@ -137,7 +168,7 @@ class _HomeState extends State<Home> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: waveController.refresh,
+                      onPressed: recorderController.refresh,
                       color: Colors.white,
                       icon: const Icon(Icons.refresh),
                     ),
@@ -146,6 +177,89 @@ class _HomeState extends State<Home> {
                 const Spacer(),
               ],
             ),
+          ),
+          const SizedBox(height: 30),
+          Container(
+            decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xff2D3548), Color(0xff151922)],
+                    stops: [0.1, 0.45],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter),
+                borderRadius: BorderRadius.circular(12.0)),
+            padding: const EdgeInsets.all(12.0),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                const SizedBox(width: 24),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () =>
+                          playerController.preparePlayer(musicFile!, 1.0),
+                      color: Colors.white,
+                      icon: const Icon(Icons.library_music),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        await playerController.startPlayer(false);
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.play_arrow),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        await playerController.pausePlayer();
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.pause),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async =>
+                          await playerController.stopPlayer(),
+                      color: Colors.white,
+                      icon: const Icon(Icons.stop),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async =>
+                          await playerController.resumePlayer(),
+                      color: Colors.white,
+                      icon: const Icon(Icons.sync),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+          AudioFileWaveforms(
+            size: Size(MediaQuery.of(context).size.width - 50, 100.0),
+            playerController: playerController,
           )
         ],
       ),

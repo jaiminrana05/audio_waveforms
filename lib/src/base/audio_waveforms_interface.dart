@@ -1,15 +1,21 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import '/src/base/constants.dart';
 import 'package:flutter/services.dart';
 
-class AudioWaveInterface {
-  AudioWaveInterface._();
+//TODO: check type safe for this as battery info +
+//TODO: throw error from native
+class AudioWaveformsInterface {
+  AudioWaveformsInterface._();
 
-  static AudioWaveInterface instance = AudioWaveInterface._();
+  static AudioWaveformsInterface instance = AudioWaveformsInterface._();
 
   static const MethodChannel _methodChannel =
       MethodChannel(Constants.methodChannelName);
+
+  static const EventChannel _eventChannel =
+      EventChannel(Constants.durationEventChannel);
 
   ///platform call to start recording
   Future<bool> record(int audioFormat, int sampleRate, [String? path]) async {
@@ -73,5 +79,64 @@ class AudioWaveInterface {
     var hasPermission =
         await _methodChannel.invokeMethod(Constants.checkPermission);
     return hasPermission ?? false;
+  }
+
+  Future<Uint8List?> readAudioFile(String path) async {
+    var result = await _methodChannel.invokeMethod(
+      Constants.convertToBytes,
+      {
+        Constants.path: path,
+      },
+    );
+    return result;
+  }
+
+  Future<bool> preparePlayer(String path, [double? volume]) async {
+    var result = await _methodChannel.invokeMethod(Constants.preparePlayer, {
+      Constants.path: path,
+      Constants.volume: volume,
+    });
+    return result ?? false;
+  }
+
+  Future<bool> startPlayer(bool seekToStart) async {
+    var result = await _methodChannel.invokeMethod(
+        Constants.startPlayer, {Constants.seekToStart: seekToStart});
+    return result ?? false;
+  }
+
+  Future<bool> stopPlayer() async {
+    var result = await _methodChannel.invokeMethod(Constants.stopPlayer);
+    return result ?? false;
+  }
+
+  Future<bool> pausePlayer() async {
+    var result = await _methodChannel.invokeMethod(Constants.pausePlayer);
+    return result ?? false;
+  }
+
+  Future<int?> getDuration(int durationType) async {
+    var duration = await _methodChannel.invokeMethod(Constants.getDuration, {
+      Constants.durationType: durationType,
+    });
+    return duration;
+  }
+
+  Future<bool> setVolume(double volume) async {
+    var result = await _methodChannel.invokeMethod(Constants.setVolume, {
+      Constants.volume: volume,
+    });
+    return result ?? false;
+  }
+
+  Future<bool> seekTo(int progress) async {
+    //TODO:test from here
+    var result = await _methodChannel
+        .invokeMethod(Constants.seekTo, {Constants.progress: progress});
+    return result ?? false;
+  }
+
+  Stream<dynamic> listenToDurationStream() {
+    return _eventChannel.receiveBroadcastStream();
   }
 }
