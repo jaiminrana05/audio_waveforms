@@ -65,9 +65,6 @@ class WaveStyle {
   final double durationTextPadding;
 
   ///Provide gradient to waveform using this. Use shader as shown in example.
-  ///
-  ///For only two colors. offset.dx is gradient effect starts and offset.dy
-  ///is for y-axis effect.
   final Shader? gradient;
 
   const WaveStyle({

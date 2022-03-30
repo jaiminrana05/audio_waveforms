@@ -16,6 +16,19 @@ public class SwiftAudioWaveformsPlugin: NSObject, FlutterPlugin {
         static let encoder = "encoder"
         static let sampleRate = "sampleRate"
         static let fileNameFormat = "YY-MM-dd-HH-mm-ss"
+        static let readAudioFile = "readAudioFile"
+        static let startEngine = "startEngine"
+        static let startPlayer = "startPlayer";
+        static let stopPlayer = "stopPlayer";
+        static let pausePlayer = "pausePlayer";
+        static let seekTo = "seekTo";
+        static let progress = "progress";
+        static let setVolume = "setVolume";
+        static let leftVolume = "leftVolume";
+        static let rightVolume = "rightVolume";
+        static let getDuration = "getDuration";
+        static let durationType = "durationType";
+        static let durationEventChannel = "durationEventChannel";
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -43,6 +56,9 @@ public class SwiftAudioWaveformsPlugin: NSObject, FlutterPlugin {
             break
         case Constants.checkPermission:
             audioWaveformsMethodCall.checkHasPermission(result)
+            break
+        case Constants.startEngine:
+            audioWaveformsMethodCall.startEngine()
             break
         default:
             result(FlutterMethodNotImplemented)

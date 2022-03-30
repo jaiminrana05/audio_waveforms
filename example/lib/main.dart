@@ -26,6 +26,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late final WaveController waveController;
+  late final PlayerController playerController;
+  String? path;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _HomeState extends State<Home> {
     waveController = WaveController()
       ..encoder = Encoder.aac
       ..sampleRate = 16000;
+    playerController = PlayerController();
   }
 
   @override
@@ -62,6 +65,7 @@ class _HomeState extends State<Home> {
               extendWaveform: true,
               showMiddleLine: false,
               labelSpacing: 8.0,
+              showDurationLabel: true,
               durationStyle: const TextStyle(
                 color: Colors.white,
                 fontSize: 18.0,
@@ -126,7 +130,10 @@ class _HomeState extends State<Home> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: waveController.stop,
+                      onPressed: () async {
+                        path = await waveController.stop(false);
+                        setState(() {});
+                      },
                       color: Colors.white,
                       icon: const Icon(Icons.stop),
                     ),
@@ -146,6 +153,93 @@ class _HomeState extends State<Home> {
                 const Spacer(),
               ],
             ),
+          ),
+          const SizedBox(height: 30),
+          Container(
+            decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xff2D3548), Color(0xff151922)],
+                    stops: [0.1, 0.45],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter),
+                borderRadius: BorderRadius.circular(12.0)),
+            padding: const EdgeInsets.all(12.0),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                const SizedBox(width: 24),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: ()=>playerController.preparePlayer(path!,1.0,1.0),
+                      color: Colors.white,
+                      icon: const Icon(Icons.library_music),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        await playerController.startPlayer();
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.play_arrow),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        await playerController.pausePlayer();
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.pause),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        await playerController.stopPlayer();
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.stop),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        var duration = await playerController.getDuration(DurationType.current);
+                        await playerController.seekTo(5000);
+                        var current =  await playerController.getDuration();
+                        print(current);
+                      },
+                      color: Colors.white,
+                      icon: const Icon(Icons.fast_forward),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+          FileWaveforms(
+            size: Size(MediaQuery.of(context).size.width - 50, 100.0),
+            playerController: playerController,
           )
         ],
       ),
