@@ -1,6 +1,7 @@
 package com.simform.audio_waveforms
 
 import android.media.AudioAttributes
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.media.MediaPlayer.SEEK_PREVIOUS_SYNC
 import android.os.Build
@@ -18,6 +19,7 @@ class AudioPlayer : EventChannel.StreamHandler {
     var mediaPlayer: MediaPlayer? = null
     private var sink: EventChannel.EventSink? = null
     private var handler: Handler =  Handler(Looper.getMainLooper())
+    var mmr = MediaMetadataRetriever()
 
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
@@ -38,9 +40,47 @@ class AudioPlayer : EventChannel.StreamHandler {
             )
             mediaPlayer?.prepare()
             mediaPlayer?.setVolume(volume ?: 1F, volume ?: 1F)
-            result.success(true)
+
+//            mmr.setDataSource(path);
+//
+//            var metadata= mapOf(
+//                    "albumTitle" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM) ,
+//                    "artist" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
+//                    "title" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE),
+//                    "cdtracknumber" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER),
+//                    "duration" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION),
+//                    "genre" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE),
+//                    "bitrate" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE),
+//                    "year" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR),
+//                    "artwork" to mmr.getEmbeddedPicture()
+//            );
+            result.success(  true)
         } else {
             result.success(false)
+        }
+
+    }
+
+     fun getMetaData(
+            result: MethodChannel.Result,
+            path: String?
+    ) {
+   if (path != null) {
+       mmr.setDataSource(path);
+            var metadata= mapOf(
+                    "albumTitle" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM) ,
+                    "artist" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST),
+                    "title" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE),
+                    "cdtracknumber" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER),
+                    "duration" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION),
+                    "genre" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE),
+                    "bitrate" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE),
+                    "year" to mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR),
+                    "artwork" to mmr.getEmbeddedPicture()
+            );
+            result.success(  metadata  )
+        } else {
+            result.success(null)
         }
 
     }

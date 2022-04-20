@@ -30,6 +30,8 @@ public class SwiftAudioWaveformsPlugin: NSObject, FlutterPlugin {
         static let getDuration = "getDuration"
         static let durationType = "durationType"
         static let preparePlayer = "preparePlayer"
+        static let getMetaData = "getMetaData"
+        
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -65,6 +67,10 @@ public class SwiftAudioWaveformsPlugin: NSObject, FlutterPlugin {
             break
         case Constants.preparePlayer:
             audioPlayer.preparePlayer(path: args?[Constants.path] as? String, volume: args?[Constants.volume] as? Double,result: result)
+            break
+        case Constants.getMetaData:
+            audioPlayer.getMetaData(path: args?[Constants.path] as? String,result: result)
+            
             break
         case Constants.startPlayer:
             audioPlayer.startPlayer(result: result)

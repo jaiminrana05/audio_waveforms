@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import '/src/base/constants.dart';
+
 import 'package:flutter/services.dart';
+
+import '/src/base/constants.dart';
 
 //TODO: check type safe for this as battery info +
 //TODO: throw error from native
@@ -96,7 +98,16 @@ class AudioWaveformsInterface {
       Constants.path: path,
       Constants.volume: volume,
     });
+
     return result ?? false;
+  }
+
+  Future<Map> getMetaData(String path) async {
+    var result = await _methodChannel.invokeMethod(Constants.getMetaData, {
+      Constants.path: path,
+    });
+
+    return result;
   }
 
   Future<bool> startPlayer(bool seekToStart) async {

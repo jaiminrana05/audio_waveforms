@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:audio_waveforms/src/base/metadata_model.dart';
 import 'package:flutter/material.dart';
 
 import '../base/audio_waveforms_interface.dart';
@@ -32,6 +33,8 @@ class PlayerController extends ChangeNotifier {
 
   bool _seekToStart = true;
 
+  AudioMetaData? audioMetaData;
+
   ///Reads bytes from audio file
   Future<void> _readAudioFile(String path) async {
     _audioFilePath = path;
@@ -41,7 +44,7 @@ class PlayerController extends ChangeNotifier {
       _bufferData = bytes;
       if (_bufferData != null) {
         _playerState = PlayerState.readingComplete;
-      }else {
+      } else {
         throw "Can't read given audio file";
       }
       notifyListeners();
@@ -62,8 +65,9 @@ class PlayerController extends ChangeNotifier {
     await _readAudioFile(path);
     if ((_playerState == PlayerState.readingComplete &&
         _audioFilePath != null)) {
-      final isPrepared =
+      bool isPrepared =
           await AudioWaveformsInterface.instance.preparePlayer(path, volume);
+
       if (isPrepared) {
         _maxDuration = await getDuration();
         _playerState = PlayerState.initialized;
@@ -72,6 +76,17 @@ class PlayerController extends ChangeNotifier {
     } else {
       throw "Can not call without reading new audio file";
     }
+  }
+
+  Future<Map> getMetaData(String path) async {
+    final metaData = await AudioWaveformsInterface.instance.getMetaData(path);
+
+    debugPrint('In Player_Controller :- ${metaData.values}');
+    metaData.forEach((key, value) {
+      debugPrint("$key ==  $value");
+    });
+    audioMetaData = AudioMetaData.fromJson(metaData);
+    return metaData;
   }
 
   ///when playing audio is finished player will be seeked to [start]. To change

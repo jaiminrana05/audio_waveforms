@@ -1,8 +1,9 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:audio_waveforms/audio_waveforms.dart';
+import 'dart:io';
 import 'dart:ui' as ui show Gradient;
 
+import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(const MyApp());
@@ -46,12 +47,13 @@ class _HomeState extends State<Home> {
   }
 
   void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(withData: true);
     ScrollController();
     if (result != null) {
       musicFile = result.files.single.path;
     } else {
-      print("File not picked");
+      debugPrint("File not picked");
     }
   }
 
@@ -68,12 +70,53 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    int lastIndex = musicFile.toString().lastIndexOf("/");
+    int? totalLenght = musicFile?.length;
     return Scaffold(
       backgroundColor: const Color(0xFF394253),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          playerController.audioMetaData != null
+              ? Column(
+                  children: [
+                    playerController.audioMetaData?.imageData != null
+                        ? Image.memory(
+                            playerController.audioMetaData!.imageData!,
+                            scale: 6,
+                          )
+                        : const SizedBox.shrink(),
+                    Text(musicFile
+                        .toString()
+                        .substring(lastIndex + 1, totalLenght)),
+                    Text(
+                      playerController.audioMetaData?.genre ?? " GENRE",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Text(
+                      playerController.audioMetaData?.albumTitle ??
+                          "Album TITLE",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Text(
+                      playerController.audioMetaData?.artist ?? "Artist",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Text(
+                      playerController.audioMetaData?.title ?? "Title",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    Text(
+                      Platform.isAndroid
+                          ? playerController.audioMetaData?.year ?? "YEAR"
+                          : playerController.audioMetaData?.releaseDate ??
+                              "RELEASE-DATE",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                )
+              : const Center(child: CircularProgressIndicator()),
           AudioWaveforms(
             enableGesture: true,
             size: Size(MediaQuery.of(context).size.width, 100.0),
@@ -193,14 +236,33 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
+                Center(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black45,
+                    child: IconButton(
+                      onPressed: () async {
+                        _pickFile();
+
+                        await playerController.getMetaData(musicFile!);
+                      },
+                      color: Colors.red,
+                      icon: const Icon(Icons.library_music),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 24),
                 Center(
                   child: CircleAvatar(
                     backgroundColor: Colors.black45,
                     child: IconButton(
-                      onPressed: () =>
-                          playerController.preparePlayer(musicFile!, 1.0),
-                      color: Colors.white,
+                      onPressed: () async {
+                        await playerController.preparePlayer(musicFile!, 1.0);
+
+                        await playerController.getMetaData(musicFile!);
+
+                        setState(() {});
+                      },
+                      color: Colors.green,
                       icon: const Icon(Icons.library_music),
                     ),
                   ),

@@ -28,4 +28,5 @@ class Constants {
   static const String durationType = "durationType";
   static const String seekToStart = "seekToStart";
   static const String durationEventChannel = "durationEventChannel";
+  static const String getMetaData = "getMetaData";
 }

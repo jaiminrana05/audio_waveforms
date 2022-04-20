@@ -60,6 +60,7 @@ class AudioWaveformsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         const val durationType = "durationType"
         const val durationEventChannel = "durationEventChannel"
         const val seekToStart = "seekToStart"
+        const val getMetaData = "getMetaData"
     }
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -96,6 +97,10 @@ class AudioWaveformsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val audioPath = call.argument(Constants.path) as String?
                 val volume = call.argument(Constants.volume) as Double?
                 audioPlayer.preparePlayer(result, audioPath, volume?.toFloat())
+            }
+            Constants.getMetaData -> {
+                val audioPath = call.argument(Constants.path) as String?
+                audioPlayer.getMetaData(result, audioPath)
             }
             Constants.startPlayer -> {
                 val seekToStart = call.argument(Constants.seekToStart) as Boolean?
